@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>薪资记录</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="薪资记录">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="theme-color" content="#34C759">
+<style>
+/* ====== APPLE-STYLE DESIGN SYSTEM ====== */
+:root {
+  --bg: #F2F2F7; --card: #FFFFFF; --text: #000000; --sub: #8E8E93; --light-sub: #AEAEB2;
+  --sep: #E5E5EA; --green: #34C759; --g-bg: #E8F8ED; --red: #FF3B30; --r-bg: #FFEEED;
+  --orange: #FF9500; --o-bg: #FFF3E0; --blue: #007AFF;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --nav-h: 56px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #000000; --card: #1C1C1E; --text: #FFFFFF; --sub: #98989D; --light-sub: #636366;
+    --sep: #38383A; --green: #30D158; --g-bg: #1A3A24; --red: #FF453A; --r-bg: #3A1A18; --o-bg: #3A2A10; }
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--text);
+  min-height: 100dvh; -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: calc(var(--safe-b) + var(--nav-h) + 40px);
+}
+
+
+/* ====== TODAY PAGE ====== */
+.today-page { padding: 14px 20px 0; }
+
+/* Day navigator */
+.day-nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin: 10px 0 14px; }
+.day-nav-left { display: flex; justify-content: flex-start; }
+.day-nav-right { display: flex; justify-content: flex-end; gap: 8px; }
+.day-nav-btn {
+  width: 36px; height: 36px; border: none; background: var(--card); color: var(--sub);
+  font-size: 18px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: all 0.15s;
+}
+.day-nav-btn:active { background: var(--sep); color: var(--text); }
+.day-nav-center { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.day-nav-label { font-size: 20px; font-weight: 700; color: var(--text); text-align: center; }
+.day-nav-sub { font-size: 13px; color: var(--sub); font-weight: 400; }
+
+/* ====== TODAY CARD ====== */
+.today-card {
+  background: var(--card); border-radius: 20px; padding: 28px 24px 20px;
+  text-align: center; margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.today-header-row {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 20px;
+}
+.today-status-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.today-status-dot.online { background: var(--green); box-shadow: 0 0 0 4px rgba(52,199,89,0.2); }
+.today-status-dot.offline { background: var(--light-sub); }
+.today-status-label {
+  font-size: 17px; font-weight: 600; color: var(--text);
+  display: flex; align-items: center; gap: 4px;
+}
+.today-status-sub {
+  font-size: 14px; font-weight: 400; color: var(--sub);
+}
+.today-holiday-tag {
+  display: inline-block; padding: 3px 10px; border-radius: 6px;
+  background: var(--o-bg); color: var(--orange); font-size: 13px; font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Giant salary */
+.today-wage-number {
+  font-size: 52px; font-weight: 800; letter-spacing: -2px; color: var(--green);
+  line-height: 1; margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.today-wage-label { font-size: 13px; color: var(--sub); font-weight: 500; margin-bottom: 24px; }
+
+/* iOS-style segmented toggle chips */
+.flag-chips {
+  display: flex; gap: 10px; justify-content: center;
+}
+.flag-chip {
+  flex: 1; max-width: 130px; padding: 13px 8px;
+  border: none; border-radius: 16px;
+  background: var(--sep);
+  font-size: 16px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; transition: all 0.2s;
+  color: var(--sub);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+.flag-chip .chip-icon { font-size: 22px; }
+.flag-chip .chip-label { font-size: 13px; }
+.flag-chip:active { transform: scale(0.95); }
+
+.flag-chip.on.work { background: var(--g-bg); color: var(--green); }
+.flag-chip.on.ot { background: var(--r-bg); color: var(--red); }
+.flag-chip.on.hol { background: var(--o-bg); color: var(--orange); }
+
+/* Note input */
+.today-note-row {
+  display: flex; gap: 8px; margin-top: 18px; align-items: center;
+}
+.today-note-row input {
+  flex: 1; padding: 12px 16px; border: none; border-radius: 12px;
+  font-size: 15px; font-family: var(--font); background: var(--bg); color: var(--text);
+  outline: none; text-align: center;
+  transition: box-shadow 0.2s;
+}
+.today-note-row input:focus { box-shadow: 0 0 0 3px rgba(0,122,255,0.15); }
+.btn-save {
+  padding: 10px 18px; border: none; border-radius: 12px; background: var(--blue);
+  color: #fff; font-size: 15px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-save:active { opacity: 0.75; transform: scale(0.96); }
+
+/* ====== STATS ROW (Today) ====== */
+.stats-row {
+  display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+  background: var(--card); border-radius: 16px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.stats-row .stat-cell {
+  flex: 1; text-align: center; padding: 12px 4px;
+  border-right: 0.5px solid var(--sep);
+  min-width: 0;
+}
+.stats-row .stat-cell:last-child { border-right: none; }
+.stats-row .sv { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stats-row .sv.green { color: var(--green); }
+.stats-row .sl { font-size: 10px; color: var(--sub); font-weight: 500; margin-top: 2px; white-space: nowrap; }
+
+/* ====== MONTHLY PAGE — senior-friendly ====== */
+.monthly-page { padding: 14px 12px 20px; }
+.cal-header { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 12px 0 14px; }
+.cal-btn {
+  width: 44px; height: 44px; border: none; border-radius: 50%; background: var(--card);
+  font-size: 22px; cursor: pointer; color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: all 0.15s;
+}
+.cal-btn:active { background: var(--sep); }
+.cal-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+
+.batch-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.big-batch-btn {
+  flex: 1; padding: 14px 10px; border: none; border-radius: 12px;
+  font-size: 18px; font-weight: 700; font-family: var(--font);
+  cursor: pointer; transition: all 0.15s;
+}
+.big-batch-btn.work { background: var(--g-bg); color: var(--green); }
+.big-batch-btn.work:active { opacity: 0.7; }
+.big-batch-btn.reset { background: var(--sep); color: var(--sub); }
+.big-batch-btn.reset:active { opacity: 0.7; }
+
+.weekday-row {
+  display: grid; grid-template-columns: repeat(7,1fr); text-align: center;
+  font-size: 16px; font-weight: 700; color: var(--sub); padding: 8px 0 6px;
+}
+
+.day-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+.day-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--card); border: 2px solid var(--sep); border-radius: 14px;
+  font-size: 22px; font-weight: 700; cursor: pointer; position: relative;
+  min-height: 56px; padding: 4px 0;
+  -webkit-tap-highlight-color: transparent; transition: transform 0.1s;
+}
+.day-cell:active { transform: scale(0.9); }
+.day-cell.empty { background: transparent; border: none; pointer-events: none; }
+.day-cell.today { border-color: var(--blue); border-width: 3px; background: var(--blue); color: #fff; }
+.day-cell .dn { position:relative; z-index:1; line-height:1; }
+.day-cell .badge { font-size: 13px; font-weight: 800; line-height:1; position:relative; z-index:1; margin-top:1px; }
+.day-cell.workday { background: var(--g-bg); border-color: var(--green); color: var(--green); }
+.day-cell.workday.otday { background: var(--r-bg); border-color: var(--red); color: var(--red); }
+.day-cell.workday.holiday:after { content:'🎌'; position:absolute; top:-4px; right:-2px; font-size:11px; z-index:2; }
+.day-cell.has-note:before { content:''; position:absolute; bottom:4px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%; background:var(--blue); z-index:1; }
+.day-cell.selected { border-color: var(--blue); border-width: 4px; }
+
+/* Notes summary — senior friendly */
+.notes-summary { background: var(--card); border-radius: 16px; padding: 16px 18px; margin-top: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.notes-summary .ns-toggle { font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: var(--text); border: none; background: none; width: 100%; padding: 0; font-family: var(--font); }
+.notes-list { margin-top: 10px; max-height: 300px; overflow-y: auto; }
+.notes-list .nl-item { padding: 10px 0; border-bottom: 0.5px solid var(--sep); display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 16px; }
+.notes-list .nl-item:last-child { border-bottom: none; }
+.notes-list .nl-date { color: var(--sub); font-size: 14px; white-space: nowrap; font-weight: 600; }
+.notes-list .nl-text { flex: 1; color: var(--text); }
+
+/* ====== MONTH DAY PANEL — big buttons ====== */
+.month-panel { display: none; position: fixed; bottom:0; left:0; right:0; z-index:100; background: var(--card); border-radius: 20px 20px 0 0; padding: 24px 18px calc(24px + var(--safe-b)); }
+.month-panel.show { display: block; }
+.month-panel .mph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.month-panel .mpd { font-size: 24px; font-weight: 800; }
+.month-panel .mphl { color: var(--orange); font-size: 16px; font-weight: 700; }
+.mp-chips { display: flex; gap: 10px; justify-content: center; margin-bottom: 14px; }
+.mp-chip {
+  flex: 1; padding: 18px 10px; border: none; border-radius: 14px;
+  background: var(--sep); font-size: 26px; font-weight: 800; font-family: var(--font);
+  letter-spacing: 2px;
+  cursor: pointer; color: var(--sub); transition: all 0.2s;
+  text-align: center; -webkit-tap-highlight-color: transparent;
+}
+.mp-chip:active { transform: scale(0.93); }
+.mp-chip.on.w { background: var(--g-bg); color: var(--green); }
+.mp-chip.on.o { background: var(--r-bg); color: var(--red); }
+.mp-chip.on.h { background: var(--o-bg); color: var(--orange); }
+
+/* ====== YEARLY PAGE ====== */
+.yearly-page { padding: 14px 12px 20px; }
+
+/* 3-column month grid */
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ym-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px 6px 14px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.ym-card:active { opacity: 0.7; transform: scale(0.95); }
+.ym-card .ym-label { font-size: 13px; font-weight: 700; color: var(--sub); }
+.ym-card .ym-amount {
+  font-size: 18px; font-weight: 800;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+.ym-card .ym-tag {
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 6px;
+}
+/* Card states */
+.ym-card.received .ym-amount { color: var(--green); }
+.ym-card.received .ym-tag { background: var(--g-bg); color: var(--green); }
+.ym-card.actual .ym-amount { color: var(--blue); }
+.ym-card.actual .ym-tag { background: rgba(0,122,255,0.12); color: var(--blue); }
+.ym-card.pending .ym-amount { color: var(--light-sub); }
+.ym-card.pending .ym-tag { background: var(--sep); color: var(--light-sub); }
+
+/* ====== BOTTOM NAV ====== */
+.bottom-nav {
+  position: fixed; bottom:0; left:0; right:0; z-index:60;
+  background: rgba(242,242,247,0.78); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-top: 0.5px solid var(--sep);
+  display: flex; height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+}
+@media (prefers-color-scheme: dark) { .bottom-nav { background: rgba(28,28,30,0.78); } }
+.nav-btn {
+  flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap:2px; border:none; background:none; color:var(--sub);
+  font-family: var(--font); font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: color 0.15s;
+}
+.nav-btn .ni { font-size: 24px; }
+.nav-btn.active { color: var(--blue); }
+
+/* ====== TOAST ====== */
+.toast {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.85);
+  background: rgba(0,0,0,0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color:#fff; font-size:22px; font-weight:700; padding:14px 32px; border-radius:14px;
+  z-index:200; pointer-events:none; opacity:0; transition: all 0.25s;
+}
+@media (prefers-color-scheme: dark) { .toast { background: rgba(255,255,255,0.9); color: #000; } }
+.toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+</style>
+</head>
+<body>
+
+<div class="today-page" id="page-today">
+  <div class="day-nav">
+    <div class="day-nav-left">
+      <button class="day-nav-btn" onclick="shiftDay(-1)">◀</button>
+    </div>
+    <div class="day-nav-center">
+      <div class="day-nav-label" id="day-nav-label">今天</div>
+      <div class="day-nav-sub" id="day-nav-lunar"></div>
+    </div>
+    <div class="day-nav-right">
+      <button class="day-nav-btn" onclick="shiftDay(1)">▶</button>
+      <button class="btn-save" onclick="goToday()" style="font-size:13px;padding:8px 14px;border-radius:18px;">↺</button>
+    </div>
+  </div>
+
+  <div class="today-card">
+    <div class="today-header-row">
+      <span class="today-status-dot offline" id="today-dot"></span>
+      <span class="today-status-label" id="today-badge">休息</span>
+      <span class="today-status-sub" id="today-badge-sub"></span>
+    </div>
+    <div class="today-holiday-tag" id="today-holiday" style="display:none;">🎌 法定节假日 · +¥150</div>
+    <div class="today-wage-number" id="today-pay">¥0</div>
+    <div class="today-wage-label">今日预计工资</div>
+    <div class="flag-chips" id="today-toggles">
+      <button class="flag-chip work" id="tg-work" onclick="toggleFlag('work')"><span class="chip-icon">◉</span><span class="chip-label">上班</span></button>
+      <button class="flag-chip ot" id="tg-ot" onclick="toggleFlag('ot')"><span class="chip-icon">◉</span><span class="chip-label">加班</span></button>
+      <button class="flag-chip hol" id="tg-hol" onclick="toggleFlag('hol')"><span class="chip-icon">◉</span><span class="chip-label">补班</span></button>
+    </div>
+    <div class="today-note-row">
+      <input type="text" id="today-note" placeholder="今天怎么样？" autocomplete="off">
+      <button class="btn-save" onclick="saveTodayNote()">保存</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-cell"><div class="sv" id="ts-work-days">0</div><div class="sl">上班</div></div>
+    <div class="stat-cell"><div class="sv" id="ts-ot-days">0</div><div class="sl">加班</div></div>
+    <div class="stat-cell"><div class="sv" id="ts-hol-days">0</div><div class="sl">补班</div></div>
+  </div>
+</div>
+
+<div class="monthly-page" id="page-monthly" style="display:none;">
+  <div class="cal-header">
+    <button class="cal-btn" onclick="changeMonth(-1)">◀</button>
+    <div class="cal-title" id="cal-title">2026年6月</div>
+    <button class="cal-btn" onclick="changeMonth(1)">▶</button>
+  </div>
+  <div class="batch-row">
+    <button class="big-batch-btn work" onclick="batchAll('work')">全部上班</button>
+    <button class="big-batch-btn reset" onclick="batchReset()">全部清零</button>
+  </div>
+  <div class="weekday-row"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+  <div class="day-grid" id="day-grid"></div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <div style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+      <div style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:4px;">预计工资</div>
+      <div style="font-size:32px;font-weight:800;color:var(--green);letter-spacing:-1px;" id="ms-month-wage">¥0</div>
+    </div>
+    <div style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+      <div style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:4px;">实发工资</div>
+      <input type="number" id="ms-actual" placeholder="填写金额" step="0.01" min="0" onchange="saveActual()" style="width:100%;border:none;font-size:32px;font-weight:800;font-family:var(--font);background:transparent;color:var(--blue);text-align:center;outline:none;letter-spacing:-1px;-webkit-appearance:none;">
+      <button class="btn-save" onclick="saveActual()" style="margin-top:4px;padding:6px 14px;font-size:13px;border-radius:8px;">保存</button>
+    </div>
+  </div>
+  <div class="notes-summary" id="notes-summary" style="margin-top:10px;">
+    <button class="ns-toggle" id="ns-toggle-btn" onclick="toggleNotes()"><span>📝 本月备注 (<span id="ns-count">0</span>)</span><span class="ns-arrow">▶</span></button>
+    <div class="notes-list" id="notes-list" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ====== YEARLY PAGE ====== -->
+<div class="yearly-page" id="page-yearly" style="display:none;">
+  <div class="cal-header">
+    <button class="cal-btn" onclick="changeYear(-1)">◀</button>
+    <div class="cal-title" id="year-title">2026年</div>
+    <button class="cal-btn" onclick="changeYear(1)">▶</button>
+  </div>
+  <div class="year-grid" id="year-cards"></div>
+  <div style="display:flex;gap:10px;" id="year-summary">
+    <div class="stat-cell" style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);">
+      <div class="sl" style="font-size:12px;">已到账累计</div>
+      <div class="sv green" id="ys-paid" style="font-size:26px;">¥0</div>
+    </div>
+    <div class="stat-cell" style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);">
+      <div class="sl" style="font-size:12px;">年度预计</div>
+      <div class="sv" id="ys-year" style="font-size:26px;">¥0</div>
+    </div>
+  </div>
+</div>
+
+<div class="month-panel" id="month-panel">
+  <div class="mph">
+    <div><span class="mpd" id="mp-date"></span><span class="mphl" id="mp-holiday"></span></div>
+    <button style="background:none;border:none;font-size:28px;cursor:pointer;color:var(--sub);padding:6px;" onclick="closeMonthPanel()">✕</button>
+  </div>
+  <div class="mp-chips" id="mp-toggles">
+    <button class="mp-chip w" id="mp-work" onclick="toggleMonthFlag('work')">上班</button>
+    <button class="mp-chip o" id="mp-ot" onclick="toggleMonthFlag('ot')">加班</button>
+    <button class="mp-chip h" id="mp-hol" onclick="toggleMonthFlag('hol')">补班</button>
+  </div>
+  <div class="today-note-row">
+    <input type="text" id="mp-note" placeholder="备注" autocomplete="off" style="font-size:18px;padding:12px 16px;">
+    <button class="btn-save" onclick="saveMonthNote()" style="font-size:17px;padding:12px 18px;">保存</button>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" data-p="today" onclick="switchPage('today')"><span class="ni">📅</span>今日</button>
+  <button class="nav-btn" data-p="monthly" onclick="switchPage('monthly')"><span class="ni">📆</span>月历</button>
+  <button class="nav-btn" data-p="yearly" onclick="switchPage('yearly')"><span class="ni">📊</span>年历</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== STABLE STORAGE (never change this key) ====================
+const SK = 'wt-rec-final';
+const NK = 'wt-note-final';
+const AK = 'wt-actual-final'; // actual salary per month: { "2026-05": 3600 }
+
+let records = {};  // { "2026-06-15": "work" | "work,ot" | "work,hol" | "work,ot,hol" }
+let notes = {};
+let actual = {};   // { "2026-05": 3600 }  actual salary received per month
+let cy = new Date().getFullYear(), cm = new Date().getMonth();
+let mSelKey = null, dayOffset = 0, yrOffset = 0;
+
+// ==================== HOLIDAYS & LUNAR ====================
+const HOLIDAYS = new Set([
+  '2026-01-01','2026-02-17','2026-02-18','2026-02-19','2026-04-05',
+  '2026-05-01','2026-05-02','2026-06-19','2026-09-25','2026-10-01','2026-10-02','2026-10-03'
+]);
+const isH = k => HOLIDAYS.has(k);
+const dk = (y,m,d) => y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+
+const LUNAR = (() => {
+  const DN = ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+  const LM = ['腊月','正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月','正月'];
+  const b = [
+    {g:'2025-12-20',d:29},{g:'2026-01-18',d:30},{g:'2026-02-17',d:30},
+    {g:'2026-03-19',d:30},{g:'2026-04-18',d:29},{g:'2026-05-17',d:29},
+    {g:'2026-06-15',d:30},{g:'2026-07-15',d:29},{g:'2026-08-13',d:29},
+    {g:'2026-09-11',d:30},{g:'2026-10-11',d:30},{g:'2026-11-10',d:29},
+    {g:'2026-12-09',d:30},{g:'2027-01-08',d:30}
+  ];
+  const m = {};
+  for (let bi = 0; bi < b.length; bi++) {
+    const x = b[bi];
+    const sd = new Date(x.g+'T00:00:00');
+    for (let i=0; i<x.d; i++) {
+      const dt = new Date(sd); dt.setDate(sd.getDate()+i);
+      const key = dk(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      if (key >= '2026-01-01' && key <= '2026-12-31') m[key] = {d: DN[i+1], m: LM[bi]};
+    }
+  }
+  return m;
+})();
+const lunar = k => { const x = LUNAR[k]; return x ? x.d : ''; };
+const lunarFull = k => { const x = LUNAR[k]; return x ? '农历' + x.m + x.d : ''; };
+
+// ==================== DATA MODEL ====================
+function getFlags(k) {
+  const s = records[k] || '';
+  if (!s || s === 'rest') return new Set();
+  return new Set(s.split(',').filter(Boolean));
+}
+function setFlags(k, f) {
+  if (f.size === 0) { delete records[k]; return; }
+  records[k] = [...f].sort().join(',');
+}
+
+function toggleDayFlag(k, flag) {
+  const f = getFlags(k);
+  if (f.has(flag)) f.delete(flag); else f.add(flag);
+  if (!f.has('work')) { f.delete('ot'); f.delete('hol'); }
+  setFlags(k, f);
+}
+
+// ==================== INIT & MIGRATE ====================
+function init() {
+  // Try to load data from stable key first
+  let raw = localStorage.getItem(SK);
+  if (!raw) {
+    // No stable data yet, try all old keys
+    const oldKeys = ['wt-v7','wt-v6','wt-v5','wt-v4','wt-v3','work-tracker-items','work-tracker-v2'];
+    let best = null, bestLen = 0;
+    for (const key of oldKeys) {
+      const d = localStorage.getItem(key);
+      if (d) {
+        try {
+          const obj = JSON.parse(d);
+          const len = Object.keys(obj).length;
+          if (len > bestLen) { best = obj; bestLen = len; }
+        } catch(e) {}
+      }
+    }
+    if (best) {
+      // Migrate old format if needed
+      const oldMap = { work:'work', overtime:'work,ot', holiday_work:'work,hol', holiday_overtime:'work,ot,hol' };
+      for (const k in best) {
+        const v = best[k];
+        if (v === 'rest' || v === '') { delete best[k]; continue; }
+        if (oldMap[v]) { best[k] = oldMap[v]; }
+      }
+      records = best;
+      saveR();
+    }
+  } else {
+    try { records = JSON.parse(raw) || {}; } catch(e) { records = {}; }
+  }
+
+  // Load notes
+  const nRaw = localStorage.getItem(NK);
+  if (!nRaw) {
+    for (const nk of ['wtn-v3','wtn-v2','wtn-v1']) {
+      const d = localStorage.getItem(nk);
+      if (d) { try { notes = JSON.parse(d) || {}; saveN(); } catch(e) {} break; }
+    }
+  } else {
+    try { notes = JSON.parse(nRaw) || {}; } catch(e) { notes = {}; }
+  }
+
+  // Load actual salaries
+  const aRaw = localStorage.getItem(AK);
+  if (aRaw) { try { actual = JSON.parse(aRaw) || {}; } catch(e) { actual = {}; } }
+
+  renderAll();
+}
+function saveR() { localStorage.setItem(SK, JSON.stringify(records)); }
+function saveN() { localStorage.setItem(NK, JSON.stringify(notes)); }
+function saveA() { localStorage.setItem(AK, JSON.stringify(actual)); }
+
+// ==================== CALC ====================
+function calcMonth(y, m) {
+  const dim = new Date(y, m+1, 0).getDate();
+  const wds = [], ots = [], hols = [];
+  for (let d = 1; d <= dim; d++) {
+    const f = getFlags(dk(y, m, d));
+    if (f.has('work')) {
+      wds.push(d);
+      if (f.has('ot')) ots.push(d);
+      if (f.has('hol')) hols.push(d);
+    }
+  }
+  wds.sort((a,b) => a-b);
+  let wage = 0;
+  const RATE_NORMAL = 2800 / 26;
+  const RATE_EXTRA = 120;
+  wds.forEach((_, i) => { wage += i < 26 ? RATE_NORMAL : RATE_EXTRA; });
+  wage += ots.length * 130;
+  wage += hols.length * 150;
+  return {
+    wage: Math.round(wage),
+    work: wds.length,
+    ot: ots.length,
+    hol: hols.length
+  };
+}
+function calcYear(y) {
+  let t = 0, d = 0, o = 0;
+  for (let m = 0; m < 12; m++) { const r = calcMonth(y, m); t += r.wage; d += r.work; o += r.ot; }
+  return { t, d, o };
+}
+
+// ==================== TODAY PAGE ====================
+function getActiveDay() { const d = new Date(); d.setDate(d.getDate() + dayOffset); return d; }
+function shiftDay(x) { dayOffset += x; renderAll(); }
+function goToday() { dayOffset = 0; renderAll(); }
+
+function toggleFlag(flag) {
+  const k = dk(getActiveDay().getFullYear(), getActiveDay().getMonth(), getActiveDay().getDate());
+  toggleDayFlag(k, flag);
+  saveR();
+  const f = getFlags(k);
+  showToast(f.has(flag) ? '✅ ' + {work:'上班',ot:'加班',hol:'补班'}[flag] : '取消 ' + {work:'上班',ot:'加班',hol:'补班'}[flag]);
+  renderAll();
+}
+
+function renderToday() {
+  const now = getActiveDay();
+  const k = dk(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayK = dk(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const f = getFlags(k), hol = isH(k), n = notes[k] || '';
+
+  // Day nav label: date on top, lunar below
+  document.getElementById('day-nav-label').textContent = (now.getMonth()+1) + '月' + now.getDate() + '日';
+  document.getElementById('day-nav-lunar').textContent = lunarFull(k);
+
+
+  // Status badge
+  const dot = document.getElementById('today-dot');
+  const sub = document.getElementById('today-badge-sub');
+  if (f.has('work')) {
+    const pts = ['上班'];
+    if (f.has('ot')) pts.push('+加班');
+    if (f.has('hol')) pts.push('+补班');
+    document.getElementById('today-badge').textContent = pts.join(' · ');
+    dot.className = 'today-status-dot online';
+    sub.textContent = '';
+  } else {
+    document.getElementById('today-badge').textContent = '休息';
+    dot.className = 'today-status-dot offline';
+    sub.textContent = '';
+  }
+
+  document.getElementById('today-holiday').style.display = hol ? '' : 'none';
+
+  // Today's pay
+  if (!f.has('work')) {
+    document.getElementById('today-pay').textContent = '¥0';
+  } else {
+    const nm = now.getMonth(), ny = now.getFullYear();
+    const wdsBefore = [];
+    for (let d = 1; d <= now.getDate(); d++) {
+      const dk2 = dk(ny, nm, d);
+      const ff = (d === now.getDate()) ? f : getFlags(dk2);
+      if (ff.has('work')) wdsBefore.push(d);
+    }
+    const idx = wdsBefore.length;
+    const base = idx <= 26 ? Math.round(2800 / 26) : 120;
+    let pay = Math.round(base);
+    if (f.has('ot')) pay += 130;
+    if (f.has('hol')) pay += 150;
+    document.getElementById('today-pay').textContent = '¥' + pay;
+  }
+
+  // Toggle chip states
+  ['work','ot','hol'].forEach(flag => {
+    const el = document.getElementById('tg-' + flag);
+    if (el) el.classList.toggle('on', f.has(flag));
+  });
+
+  document.getElementById('today-note').value = n;
+}
+
+function saveTodayNote() {
+  const k = dk(getActiveDay().getFullYear(), getActiveDay().getMonth(), getActiveDay().getDate());
+  const v = document.getElementById('today-note').value.trim();
+  if (v) notes[k] = v; else delete notes[k];
+  saveN(); showToast('📝 已保存'); renderAll();
+}
+
+// ==================== MONTHLY PAGE ====================
+let notesOpen = false;
+
+function toggleNotes() {
+  notesOpen = !notesOpen;
+  document.getElementById('notes-list').style.display = notesOpen ? 'block' : 'none';
+  const btn = document.getElementById('ns-toggle-btn');
+  if (btn) btn.classList.toggle('open', notesOpen);
+}
+
+function renderNotesSummary() {
+  const dim = new Date(cy, cm+1, 0).getDate();
+  const list = [];
+  for (let d = 1; d <= dim; d++) {
+    const k = dk(cy, cm, d);
+    if (notes[k]) list.push({ key: k, day: d, text: notes[k], f: getFlags(k) });
+  }
+  document.getElementById('ns-count').textContent = list.length;
+
+  const el = document.getElementById('notes-list');
+  if (list.length === 0) {
+    el.innerHTML = '<div class="notes-empty">本月暂无备注</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const ld = lunar(n.key);
+    const s = n.f.has('work') ? '上班' : '休息';
+    const ex = [];
+    if (n.f.has('ot')) ex.push('加班');
+    if (n.f.has('hol')) ex.push('补班');
+    const label = s + (ex.length ? '+' + ex.join('+') : '');
+    return '<div class="nl-item" onclick="onMonthDay(\'' + n.key + '\')">' +
+      '<span class="nl-date">' + n.day + '日' + (ld ? '·' + ld : '') + ' ' + label + '</span>' +
+      '<span class="nl-text">' + escHtml(n.text) + '</span></div>';
+  }).join('');
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderMonthly() {
+  const dim = new Date(cy, cm+1, 0).getDate();
+  const sd = new Date(cy, cm, 1).getDay();
+  const todayK = dk(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+
+  let h = '';
+  for (let i = 0; i < sd; i++) h += '<div class="day-cell empty"></div>';
+  for (let d = 1; d <= dim; d++) {
+    const k = dk(cy, cm, d);
+    const f = getFlags(k);
+    const hol = isH(k);
+    let cls = 'day-cell';
+    if (f.has('work')) { cls += ' workday'; if (f.has('ot')) cls += ' otday'; }
+    if (hol) cls += ' holiday';
+    if (notes[k]) cls += ' has-note';
+    if (k === todayK) cls += ' today';
+    if (k === mSelKey) cls += ' selected';
+
+    let badge = '';
+    if (f.has('work')) {
+      const pts = ['班'];
+      if (f.has('ot')) pts.push('加');
+      if (f.has('hol')) pts.push('补');
+      badge = '<span class="badge">' + pts.join('') + '</span>';
+    }
+
+    h += '<div class="' + cls + '" data-k="' + k + '" onclick="onMonthDay(\'' + k + '\')">' +
+      '<span class="dn">' + d + '</span>' + badge + '</div>';
+  }
+
+  document.getElementById('day-grid').innerHTML = h;
+  document.getElementById('cal-title').textContent = cy + '年' + (cm+1) + '月';
+  renderNotesSummary();
+}
+
+function onMonthDay(k) {
+  mSelKey = k;
+  const f = getFlags(k);
+  document.getElementById('mp-date').textContent = k;
+  document.getElementById('mp-holiday').textContent = isH(k) ? '🎌 节假日' : '';
+  document.getElementById('mp-note').value = notes[k] || '';
+  ['work','ot','hol'].forEach(flag => {
+    const el = document.getElementById('mp-' + flag);
+    if (el) { el.classList.toggle('on', f.has(flag)); }
+  });
+  document.getElementById('month-panel').classList.add('show');
+  renderMonthly();
+}
+
+function closeMonthPanel() {
+  mSelKey = null;
+  document.getElementById('month-panel').classList.remove('show');
+  renderMonthly();
+  renderAll();
+}
+
+function toggleMonthFlag(flag) {
+  if (!mSelKey) return;
+  toggleDayFlag(mSelKey, flag);
+  saveR();
+  const f = getFlags(mSelKey);
+  showToast(f.has(flag) ? '✅ ' + {work:'上班',ot:'加班',hol:'补班'}[flag] : '取消');
+  const el = document.getElementById('mp-' + flag);
+  if (el) el.classList.toggle('on', f.has(flag));
+  renderMonthly(); renderToday(); updateSummary();
+}
+
+function saveMonthNote() {
+  if (!mSelKey) return;
+  const v = document.getElementById('mp-note').value.trim();
+  if (v) notes[mSelKey] = v; else delete notes[mSelKey];
+  saveN(); showToast('📝 已保存'); renderMonthly();
+}
+
+function batchAll(s) {
+  const dim = new Date(cy, cm+1, 0).getDate();
+  if (s === 'rest') {
+    for (let d = 1; d <= dim; d++) delete records[dk(cy, cm, d)];
+    showToast('🗑️ ' + (cm+1) + '月已清零');
+  } else {
+    let c = 0;
+    for (let d = 1; d <= dim; d++) {
+      const k = dk(cy, cm, d);
+      if (!getFlags(k).has('work')) { records[k] = 'work'; c++; }
+    }
+    showToast('✅ 已标记' + c + '天上班');
+  }
+  saveR(); renderMonthly(); updateSummary();
+}
+
+function batchReset() {
+  const dim = new Date(cy, cm+1, 0).getDate();
+  for (let d = 1; d <= dim; d++) delete records[dk(cy, cm, d)];
+  saveR(); showToast('🗑️ ' + (cm+1) + '月已清零'); renderMonthly(); updateSummary();
+}
+
+function changeMonth(d) {
+  cm += d;
+  if (cm < 0) { cm = 11; cy--; } else if (cm > 11) { cm = 0; cy++; }
+  mSelKey = null;
+  document.getElementById('month-panel').classList.remove('show');
+  renderMonthly(); updateSummary();
+}
+
+// ==================== SHARED ====================
+// ==================== SHARED ====================
+function saveActual() {
+  const v = document.getElementById('ms-actual').value.trim();
+  const key = cy + '-' + String(cm+1).padStart(2,'0');
+  if (v) actual[key] = parseFloat(v); else delete actual[key];
+  saveA();
+  updateSummary();
+  showToast('💾 实发工资已保存');
+}
+
+function calcPaidSalary(y, m, day) {
+  // Salary paid on 20th for previous month
+  // If today >= 20: paid through = last month
+  // If today < 20: paid through = month before last
+  const paidThrough = day >= 20 ? m - 1 : m - 2;
+  if (paidThrough < 0) return 0;
+  let total = 0;
+  for (let i = 0; i <= paidThrough; i++) {
+    const key = y + '-' + String(i+1).padStart(2,'0');
+    total += actual[key] || calcMonth(y, i).wage;
+  }
+  return Math.round(total);
+}
+
+function updateSummary() {
+  const td = new Date();
+  const nowY = td.getFullYear(), nowM = td.getMonth(), nowD = td.getDate();
+  const mr = calcMonth(nowY, nowM);       // current real month → today page
+  const mrCal = calcMonth(cy, cm);        // calendar's month → monthly page
+  const actKey = cy + '-' + String(cm+1).padStart(2,'0');
+
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  // Today page: work/ot/hol counts
+  setVal('ts-work-days', mr.work + '天');
+  setVal('ts-ot-days', mr.ot + '次');
+  setVal('ts-hol-days', mr.hol + '次');
+  // Monthly page
+  setVal('ms-month-wage', '¥' + mrCal.wage.toLocaleString('zh-CN'));
+  // Actual salary input for current calendar month
+  const actInput = document.getElementById('ms-actual');
+  if (actInput) actInput.value = actual[actKey] || '';
+}
+
+// ==================== YEARLY PAGE ====================
+function renderYearly() {
+  var yr = new Date().getFullYear() + yrOffset;
+  document.getElementById('year-title').textContent = yr + '年';
+  var h = '', cumPaid = 0;
+  var months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var now = new Date();
+  for (var m = 0; m < 12; m++) {
+    var r = calcMonth(yr, m);
+    var actKey = yr + '-' + String(m+1).padStart(2,'0');
+    // Salary paid on 20th of NEXT month for this month
+    // e.g. January salary paid on Feb 20 → check if now >= Feb 20
+    var received = now >= new Date(yr, m + 1, 20);
+    var hasActual = actual[actKey] !== undefined;
+    var displayVal = hasActual ? actual[actKey] : r.wage;
+    var cls = received ? (hasActual ? 'actual' : 'received') : 'pending';
+    var tag = received ? '已到账' : '待发';
+    if (received) cumPaid += displayVal;
+
+    h += '<div class="ym-card ' + cls + '" onclick="goToMonth(' + yr + ',' + m + ')">';
+    h += '<span class="ym-label">' + months[m] + '</span>';
+    h += '<span class="ym-amount">¥' + displayVal.toLocaleString('zh-CN') + '</span>';
+    h += '<span class="ym-tag">' + tag + '</span>';
+    h += '</div>';
+  }
+  document.getElementById('year-cards').innerHTML = h;
+  document.getElementById('ys-paid').textContent = '¥' + cumPaid.toLocaleString('zh-CN');
+  document.getElementById('ys-year').textContent = '¥' + calcYear(yr).t.toLocaleString('zh-CN');
+}
+
+function goToMonth(yr, m) {
+  cy = yr; cm = m;
+  switchPage('monthly');
+}
+
+function changeYear(d) {
+  yrOffset += d;
+  renderYearly();
+}
+
+function switchPage(p) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.p === p));
+  document.getElementById('page-today').style.display = p === 'today' ? '' : 'none';
+  document.getElementById('page-monthly').style.display = p === 'monthly' ? 'block' : 'none';
+  document.getElementById('page-yearly').style.display = p === 'yearly' ? 'block' : 'none';
+  if (p === 'monthly') { renderMonthly(); updateSummary(); }
+  if (p === 'yearly') { renderYearly(); }
+}
+
+function renderAll() {
+  renderToday();
+  renderMonthly();
+  updateSummary();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 1200);
+}
+
+// ==================== START ====================
+init();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
