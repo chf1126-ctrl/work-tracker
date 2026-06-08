@@ -10,21 +10,31 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="薪资记录">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<meta name="theme-color" content="#34C759">
+<meta name="theme-color" content="#007AFF" id="meta-theme">
 <style>
 /* ====== APPLE-STYLE DESIGN SYSTEM ====== */
 :root {
   --bg: #F2F2F7; --card: #FFFFFF; --text: #000000; --sub: #8E8E93; --light-sub: #AEAEB2;
-  --sep: #E5E5EA; --green: #34C759; --g-bg: #E8F8ED; --red: #FF3B30; --r-bg: #FFEEED;
-  --orange: #FF9500; --o-bg: #FFF3E0; --blue: #007AFF;
+  --sep: #E5E5EA;
+  --accent: #34C759; --accent-bg: #E8F8ED;
+  --red: #FF3B30; --r-bg: #FFEEED;
+  --orange: #FF9500; --o-bg: #FFF3E0;
+  --blue: #007AFF;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --nav-h: 56px;
 }
+/* 陈工厂 — 蓝色主题 */
+body[data-person="陈工厂"] { --accent: #007AFF; --accent-bg: #E8F1FF; }
+/* 张秀荣 — 粉色主题 */
+body[data-person="张秀荣"] { --accent: #FF2D55; --accent-bg: #FFE8EC; }
+
 @media (prefers-color-scheme: dark) {
   :root { --bg: #000000; --card: #1C1C1E; --text: #FFFFFF; --sub: #98989D; --light-sub: #636366;
-    --sep: #38383A; --green: #30D158; --g-bg: #1A3A24; --red: #FF453A; --r-bg: #3A1A18; --o-bg: #3A2A10; }
+    --sep: #38383A; --accent: #30D158; --accent-bg: #1A3A24; --red: #FF453A; --r-bg: #3A1A18; --o-bg: #3A2A10; }
+  body[data-person="陈工厂"] { --accent: #4DA6FF; --accent-bg: #0D1F3B; }
+  body[data-person="张秀荣"] { --accent: #FF6482; --accent-bg: #3D1018; }
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -34,8 +44,36 @@ body {
   -webkit-tap-highlight-color: transparent;
   padding-top: calc(var(--safe-t) + 16px);
   padding-bottom: calc(var(--safe-b) + var(--nav-h) + 40px);
+  transition: background 0.4s, color 0.4s;
+}
+/* All accent-colored elements animate on person switch */
+.today-wage-number, .day-cell.workday, .flag-chip.on.work,
+.stats-row .sv, .ym-card.received .ym-amount, .ym-card.received .ym-dot,
+.big-batch-btn.work, .mp-chip.on.w {
+  transition: color 0.4s, background 0.4s, border-color 0.4s;
 }
 
+
+/* ====== PERSON SWITCHER ====== */
+.person-switch {
+  display: flex; gap: 12px; justify-content: center; margin: 0 20px 16px;
+}
+.ps-btn {
+  flex: 1; max-width: 160px; padding: 13px 0; border: 2px solid var(--sep); border-radius: 16px;
+  font-size: 16px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; transition: all 0.25s; color: var(--light-sub);
+  background: var(--card); -webkit-tap-highlight-color: transparent;
+  letter-spacing: 1px;
+}
+.ps-btn:active { transform: scale(0.96); }
+.ps-btn.active:active { transform: scale(1.0); }
+
+.ps-btn.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+  font-size: 20px; font-weight: 800; letter-spacing: 2px;
+  box-shadow: 0 4px 16px var(--accent-bg);
+  transform: scale(1.02);
+}
 
 /* ====== TODAY PAGE ====== */
 .today-page { padding: 0 20px; }
@@ -69,7 +107,7 @@ body {
 .today-status-dot {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
 }
-.today-status-dot.online { background: var(--green); box-shadow: 0 0 0 4px rgba(52,199,89,0.2); }
+.today-status-dot.online { background: var(--accent); box-shadow: 0 0 0 5px var(--accent-bg); }
 .today-status-dot.offline { background: var(--light-sub); }
 .today-status-label {
   font-size: 17px; font-weight: 600; color: var(--text);
@@ -86,7 +124,7 @@ body {
 
 /* Giant salary */
 .today-wage-number {
-  font-size: 52px; font-weight: 800; letter-spacing: -2px; color: var(--green);
+  font-size: 52px; font-weight: 800; letter-spacing: -2px; color: var(--accent);
   line-height: 1; margin-bottom: 4px;
   font-variant-numeric: tabular-nums;
 }
@@ -112,7 +150,7 @@ body {
 .flag-chip .chip-bonus { font-size: 11px; font-weight: 500; opacity: 0.5; }
 .flag-chip:active { transform: scale(0.95); }
 
-.flag-chip.on.work { background: var(--g-bg); border-color: var(--green); color: var(--green); }
+.flag-chip.on.work { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
 .flag-chip.on.work .chip-bonus { opacity: 0.8; }
 .flag-chip.on.ot { background: var(--r-bg); border-color: var(--red); color: var(--red); }
 .flag-chip.on.ot .chip-bonus { opacity: 0.8; }
@@ -149,9 +187,9 @@ body {
   min-width: 0;
 }
 .stats-row .stat-cell:last-child { border-right: none; }
-.stats-row .sv { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.stats-row .sv.green { color: var(--green); }
-.stats-row .sl { font-size: 10px; color: var(--sub); font-weight: 500; margin-top: 2px; white-space: nowrap; }
+.stats-row .sv { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.stats-row .sv.green { color: var(--accent); }
+.stats-row .sl { font-size: 12px; color: var(--sub); font-weight: 600; margin-top: 2px; white-space: nowrap; }
 
 /* ====== MONTHLY PAGE — senior-friendly ====== */
 .monthly-page { padding: 0 12px 20px; }
@@ -172,7 +210,7 @@ body {
   font-size: 18px; font-weight: 700; font-family: var(--font);
   cursor: pointer; transition: all 0.15s;
 }
-.big-batch-btn.work { background: var(--g-bg); color: var(--green); }
+.big-batch-btn.work { background: var(--accent-bg); color: var(--accent); }
 .big-batch-btn.work:active { opacity: 0.7; }
 .big-batch-btn.reset { background: var(--sep); color: var(--sub); }
 .big-batch-btn.reset:active { opacity: 0.7; }
@@ -195,11 +233,12 @@ body {
 .day-cell.today { border-color: var(--blue); border-width: 3px; background: var(--blue); color: #fff; }
 .day-cell .dn { position:relative; z-index:1; line-height:1; }
 .day-cell .badge { font-size: 13px; font-weight: 800; line-height:1; position:relative; z-index:1; margin-top:1px; }
-.day-cell.workday { background: var(--g-bg); border-color: var(--green); color: var(--green); }
+.day-cell.workday { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
 .day-cell.workday.otday { background: var(--r-bg); border-color: var(--red); color: var(--red); }
 .day-cell.workday.holiday:after { content:'🎌'; position:absolute; top:-4px; right:-2px; font-size:11px; z-index:2; }
 .day-cell.has-note:before { content:''; position:absolute; bottom:4px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%; background:var(--blue); z-index:1; }
 .day-cell.selected { border-color: var(--blue); border-width: 4px; }
+.day-cell .day-hint { position:absolute; bottom:2px; right:4px; font-size:9px; color:var(--light-sub); opacity:0.3; line-height:1; pointer-events:none; }
 
 /* Notes summary — senior friendly */
 .notes-summary { background: var(--card); border-radius: 16px; padding: 16px 18px; margin-top: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
@@ -225,14 +264,14 @@ body {
   text-align: center; -webkit-tap-highlight-color: transparent;
 }
 .mp-chip:active { transform: scale(0.93); }
-.mp-chip.on.w { background: var(--g-bg); color: var(--green); }
+.mp-chip.on.w { background: var(--accent-bg); color: var(--accent); }
 .mp-chip.on.o { background: var(--r-bg); color: var(--red); }
 .mp-chip.on.h { background: var(--o-bg); color: var(--orange); }
 
 /* ====== YEARLY PAGE ====== */
-.yearly-page { padding: 0 12px 20px; }
+.yearly-page { padding: 0 14px 20px; }
 
-/* 3-column month grid */
+/* 3-column cards */
 .year-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -242,35 +281,36 @@ body {
 .ym-card {
   background: var(--card);
   border-radius: 16px;
-  padding: 18px 6px 14px;
-  text-align: center;
+  padding: 14px 6px 12px;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   transition: all 0.15s;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   -webkit-tap-highlight-color: transparent;
 }
 .ym-card:active { opacity: 0.7; transform: scale(0.95); }
-.ym-card .ym-label { font-size: 13px; font-weight: 700; color: var(--sub); }
-.ym-card .ym-amount {
-  font-size: 18px; font-weight: 800;
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
+.ym-card .ym-month   { font-size: 12px; font-weight: 700; color: var(--sub); }
+.ym-card .ym-amount  { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.ym-card .ym-tag     { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.ym-card .ym-detail  { font-size: 10px; font-weight: 500; color: var(--sub); }
+.ym-card.actual    .ym-amount { color: var(--accent); }
+.ym-card.actual    .ym-tag    { background: var(--accent-bg); color: var(--accent); }
+.ym-card.received  .ym-amount { color: var(--blue); }
+.ym-card.received  .ym-tag    { background: rgba(0,122,255,0.12); color: var(--blue); }
+.ym-card.pending   .ym-amount { color: var(--light-sub); }
+.ym-card.pending   .ym-tag    { background: var(--sep); color: var(--light-sub); }
+@media (prefers-color-scheme: dark) {
+  .ym-card.received .ym-tag   { background: rgba(77,166,255,0.18); }
+  .ym-card.pending  .ym-tag   { background: var(--sep); }
 }
-.ym-card .ym-tag {
-  font-size: 10px; font-weight: 600;
-  padding: 2px 8px; border-radius: 6px;
+
+/* Summary row */
+.year-summary-row {
+  display: flex; gap: 10px;
 }
-/* Card states */
-.ym-card.received .ym-amount { color: var(--green); }
-.ym-card.received .ym-tag { background: var(--g-bg); color: var(--green); }
-.ym-card.actual .ym-amount { color: var(--blue); }
-.ym-card.actual .ym-tag { background: rgba(0,122,255,0.12); color: var(--blue); }
-.ym-card.pending .ym-amount { color: var(--light-sub); }
-.ym-card.pending .ym-tag { background: var(--sep); color: var(--light-sub); }
 
 /* ====== BOTTOM NAV ====== */
 .bottom-nav {
@@ -301,7 +341,12 @@ body {
 .toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
 </style>
 </head>
-<body>
+<body data-person="陈工厂">
+
+<div class="person-switch" id="person-switch">
+  <button class="ps-btn male active" data-person="陈工厂" onclick="switchPerson('陈工厂')">陈工厂</button>
+  <button class="ps-btn female" data-person="张秀荣" onclick="switchPerson('张秀荣')">张秀荣</button>
+</div>
 
 <div class="today-page" id="page-today">
   <div class="day-nav">
@@ -360,7 +405,7 @@ body {
   <div style="display:flex;gap:10px;margin-top:14px;">
     <div style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
       <div style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:4px;">预计工资</div>
-      <div style="font-size:32px;font-weight:800;color:var(--green);letter-spacing:-1px;" id="ms-month-wage">¥0</div>
+      <div style="font-size:32px;font-weight:800;color:var(--accent);letter-spacing:-1px;" id="ms-month-wage">¥0</div>
     </div>
     <div style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
       <div style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:4px;">实发工资</div>
@@ -382,14 +427,14 @@ body {
     <button class="cal-btn" onclick="changeYear(1)">▶</button>
   </div>
   <div class="year-grid" id="year-cards"></div>
-  <div style="display:flex;gap:10px;" id="year-summary">
-    <div class="stat-cell" style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);">
-      <div class="sl" style="font-size:12px;">已到账累计</div>
-      <div class="sv green" id="ys-paid" style="font-size:26px;">¥0</div>
+  <div class="year-summary-row">
+    <div style="flex:1;background:var(--card);border-radius:14px;padding:14px 12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.03);">
+      <div style="font-size:11px;color:var(--sub);font-weight:600;">已到账累计</div>
+      <div style="font-size:22px;font-weight:800;color:var(--accent);" id="ys-paid">¥0</div>
     </div>
-    <div class="stat-cell" style="flex:1;background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);">
-      <div class="sl" style="font-size:12px;">年度预计</div>
-      <div class="sv" id="ys-year" style="font-size:26px;">¥0</div>
+    <div style="flex:1;background:var(--card);border-radius:14px;padding:14px 12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.03);">
+      <div style="font-size:11px;color:var(--sub);font-weight:600;">今年已赚</div>
+      <div style="font-size:22px;font-weight:800;" id="ys-year">¥0</div>
     </div>
   </div>
 </div>
@@ -418,14 +463,14 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// ==================== STABLE STORAGE (never change this key) ====================
-const SK = 'wt-rec-final';
-const NK = 'wt-note-final';
-const AK = 'wt-actual-final'; // actual salary per month: { "2026-05": 3600 }
+// ==================== PERSON-AWARE STORAGE ====================
+const PERSONS = ['陈工厂', '张秀荣'];
+let person = '陈工厂';
+function pk(base) { return base + ':' + person; }
 
 let records = {};  // { "2026-06-15": "work" | "work,ot" | "work,hol" | "work,ot,hol" }
 let notes = {};
-let actual = {};   // { "2026-05": 3600 }  actual salary received per month
+let actual = {};   // { "2026-05": 3600 }
 let cy = new Date().getFullYear(), cm = new Date().getMonth();
 let mSelKey = null, dayOffset = 0, yrOffset = 0;
 
@@ -483,58 +528,83 @@ function toggleDayFlag(k, flag) {
 }
 
 // ==================== INIT & MIGRATE ====================
-function init() {
-  // Try to load data from stable key first
-  let raw = localStorage.getItem(SK);
+function loadPerson() {
+  var rk = pk('wt-rec');
+  var raw = localStorage.getItem(rk);
   if (!raw) {
-    // No stable data yet, try all old keys
-    const oldKeys = ['wt-v7','wt-v6','wt-v5','wt-v4','wt-v3','work-tracker-items','work-tracker-v2'];
-    let best = null, bestLen = 0;
-    for (const key of oldKeys) {
-      const d = localStorage.getItem(key);
+    // Try old single-person keys → migrate to 陈工厂
+    var oldKeys = ['wt-v7','wt-v6','wt-v5','wt-v4','wt-v3','work-tracker-items','work-tracker-v2'];
+    var best = null, bestLen = 0;
+    for (var i = 0; i < oldKeys.length; i++) {
+      var d = localStorage.getItem(oldKeys[i]);
       if (d) {
         try {
-          const obj = JSON.parse(d);
-          const len = Object.keys(obj).length;
+          var obj = JSON.parse(d);
+          var len = Object.keys(obj).length;
           if (len > bestLen) { best = obj; bestLen = len; }
         } catch(e) {}
       }
     }
     if (best) {
-      // Migrate old format if needed
-      const oldMap = { work:'work', overtime:'work,ot', holiday_work:'work,hol', holiday_overtime:'work,ot,hol' };
-      for (const k in best) {
-        const v = best[k];
+      var oldMap = { work:'work', overtime:'work,ot', holiday_work:'work,hol', holiday_overtime:'work,ot,hol' };
+      for (var k in best) {
+        var v = best[k];
         if (v === 'rest' || v === '') { delete best[k]; continue; }
         if (oldMap[v]) { best[k] = oldMap[v]; }
       }
       records = best;
       saveR();
+    } else {
+      records = {};
     }
   } else {
     try { records = JSON.parse(raw) || {}; } catch(e) { records = {}; }
   }
 
   // Load notes
-  const nRaw = localStorage.getItem(NK);
+  var nRaw = localStorage.getItem(pk('wt-note'));
   if (!nRaw) {
-    for (const nk of ['wtn-v3','wtn-v2','wtn-v1']) {
-      const d = localStorage.getItem(nk);
-      if (d) { try { notes = JSON.parse(d) || {}; saveN(); } catch(e) {} break; }
+    var oldNKeys = ['wtn-v3','wtn-v2','wtn-v1'];
+    for (var ni = 0; ni < oldNKeys.length; ni++) {
+      var nd = localStorage.getItem(oldNKeys[ni]);
+      if (nd) { try { notes = JSON.parse(nd) || {}; saveN(); } catch(e) {} break; }
     }
   } else {
     try { notes = JSON.parse(nRaw) || {}; } catch(e) { notes = {}; }
   }
 
   // Load actual salaries
-  const aRaw = localStorage.getItem(AK);
-  if (aRaw) { try { actual = JSON.parse(aRaw) || {}; } catch(e) { actual = {}; } }
+  var aRaw = localStorage.getItem(pk('wt-actual'));
+  if (aRaw) { try { actual = JSON.parse(aRaw) || {}; } catch(e) { actual = {}; } } else { actual = {}; }
+}
 
+function init() {
+  loadPerson();
+  renderPersonSwitch();
   renderAll();
 }
-function saveR() { localStorage.setItem(SK, JSON.stringify(records)); }
-function saveN() { localStorage.setItem(NK, JSON.stringify(notes)); }
-function saveA() { localStorage.setItem(AK, JSON.stringify(actual)); }
+function saveR() { localStorage.setItem(pk('wt-rec'), JSON.stringify(records)); }
+function saveN() { localStorage.setItem(pk('wt-note'), JSON.stringify(notes)); }
+function saveA() { localStorage.setItem(pk('wt-actual'), JSON.stringify(actual)); }
+
+function switchPerson(name) {
+  if (name === person) return;
+  person = name;
+  document.body.setAttribute('data-person', name);
+  // Update status bar color
+  var themeColor = name === '陈工厂' ? '#007AFF' : '#FF2D55';
+  document.getElementById('meta-theme').setAttribute('content', themeColor);
+  loadPerson();
+  renderPersonSwitch();
+  renderAll();
+}
+
+function renderPersonSwitch() {
+  var btns = document.querySelectorAll('.ps-btn');
+  btns.forEach(function(b) {
+    b.classList.toggle('active', b.dataset.person === person);
+  });
+}
 
 // ==================== CALC ====================
 function calcMonth(y, m) {
@@ -711,13 +781,41 @@ function renderMonthly() {
       badge = '<span class="badge">' + pts.join('') + '</span>';
     }
 
-    h += '<div class="' + cls + '" data-k="' + k + '" onclick="onMonthDay(\'' + k + '\')">' +
-      '<span class="dn">' + d + '</span>' + badge + '</div>';
+    h += '<div class="' + cls + '" data-k="' + k + '" ' +
+      'onclick="quickToggleWork(\'' + k + '\')" ' +
+      'ontouchstart="dayTouchStart(event,\'' + k + '\')" ' +
+      'ontouchend="dayTouchEnd(event)" ' +
+      'ontouchmove="dayTouchMove(event)">' +
+      '<span class="dn">' + d + '</span>' + badge +
+      '<span class="day-hint">⋯</span></div>';
   }
 
   document.getElementById('day-grid').innerHTML = h;
   document.getElementById('cal-title').textContent = cy + '年' + (cm+1) + '月';
   renderNotesSummary();
+}
+
+/* Long-press helpers */
+let _lpTimer = null, _lpKey = null, _lpMoved = false;
+function dayTouchStart(e, key) {
+  _lpMoved = false;
+  _lpKey = key;
+  _lpTimer = setTimeout(function() {
+    if (!_lpMoved) onMonthDay(_lpKey);
+  }, 500);
+}
+function dayTouchMove(e) { _lpMoved = true; }
+function dayTouchEnd(e) { clearTimeout(_lpTimer); }
+
+function quickToggleWork(k) {
+  toggleDayFlag(k, 'work');
+  saveR();
+  mSelKey = k;
+  renderMonthly();
+  updateSummary();
+  renderToday();
+  var f = getFlags(k);
+  showToast(f.has('work') ? '✅ 上班' : '休息');
 }
 
 function onMonthDay(k) {
@@ -838,34 +936,44 @@ function renderYearly() {
   var yr = new Date().getFullYear() + yrOffset;
   document.getElementById('year-title').textContent = yr + '年';
   var h = '', cumPaid = 0;
-  var months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   var now = new Date();
+
   for (var m = 0; m < 12; m++) {
     var r = calcMonth(yr, m);
     var actKey = yr + '-' + String(m+1).padStart(2,'0');
-    // Salary paid on 20th of NEXT month for this month
-    // e.g. January salary paid on Feb 20 → check if now >= Feb 20
     var received = now >= new Date(yr, m + 1, 20);
     var hasActual = actual[actKey] !== undefined;
     var displayVal = hasActual ? actual[actKey] : r.wage;
-    var cls = received ? (hasActual ? 'actual' : 'received') : 'pending';
-    var tag = received ? '已到账' : '待发';
-    if (received) cumPaid += displayVal;
+    var noWork = r.work === 0;
+    // 实发(actual) = accent主色, 预计(received) = blue次色, 待发(pending) = 灰
+    var cls = noWork ? 'pending' : hasActual ? 'actual' : received ? 'received' : 'pending';
+    var tag = noWork ? '未上班' : hasActual ? '实发' : received ? '预计' : '待发';
+    if (hasActual || received) cumPaid += displayVal;
 
     h += '<div class="ym-card ' + cls + '" onclick="goToMonth(' + yr + ',' + m + ')">';
-    h += '<span class="ym-label">' + months[m] + '</span>';
+    h += '<span class="ym-month">' + (m+1) + '月</span>';
     h += '<span class="ym-amount">¥' + displayVal.toLocaleString('zh-CN') + '</span>';
     h += '<span class="ym-tag">' + tag + '</span>';
+    if (noWork) {
+      h += '<span class="ym-detail">—</span>';
+    } else {
+      h += '<span class="ym-detail">出勤' + r.work + '天' + (r.ot > 0 ? ' · 加' + r.ot : '') + '</span>';
+    }
     h += '</div>';
   }
+
   document.getElementById('year-cards').innerHTML = h;
   document.getElementById('ys-paid').textContent = '¥' + cumPaid.toLocaleString('zh-CN');
   document.getElementById('ys-year').textContent = '¥' + calcYear(yr).t.toLocaleString('zh-CN');
 }
 
 function goToMonth(yr, m) {
-  cy = yr; cm = m;
-  switchPage('monthly');
+  cy = yr; cm = m; yrOffset = 0;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.p === 'monthly'));
+  document.getElementById('page-today').style.display = 'none';
+  document.getElementById('page-monthly').style.display = 'block';
+  document.getElementById('page-yearly').style.display = 'none';
+  renderMonthly(); updateSummary();
 }
 
 function changeYear(d) {
@@ -885,6 +993,7 @@ function switchPage(p) {
 function renderAll() {
   renderToday();
   renderMonthly();
+  renderYearly();
   updateSummary();
 }
 
