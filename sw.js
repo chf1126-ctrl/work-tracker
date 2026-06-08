@@ -1,5 +1,5 @@
-const CACHE = 'work-tracker-v9';
-const ASSETS = ['/','/index.html','/manifest.json','/icons/icon-192.png','/icons/icon-512.png','/icons/icon-180.png'];
+const CACHE = 'work-tracker-v10';
+const ASSETS = ['./','index.html','manifest.json','icons/icon-192.png','icons/icon-512.png','icons/icon-180.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
