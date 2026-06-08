@@ -873,8 +873,8 @@ function switchPage(p) {
   document.getElementById('page-today').style.display = p === 'today' ? '' : 'none';
   document.getElementById('page-monthly').style.display = p === 'monthly' ? 'block' : 'none';
   document.getElementById('page-yearly').style.display = p === 'yearly' ? 'block' : 'none';
-  if (p === 'monthly') { renderMonthly(); updateSummary(); }
-  if (p === 'yearly') { renderYearly(); }
+  if (p === 'monthly') { cy = new Date().getFullYear(); cm = new Date().getMonth(); renderMonthly(); updateSummary(); }
+  if (p === 'yearly') { yrOffset = 0; renderYearly(); }
 }
 
 function renderAll() {
