@@ -94,25 +94,30 @@ body {
 
 /* iOS-style segmented toggle chips */
 .flag-chips {
-  display: flex; gap: 10px; justify-content: center;
+  display: flex; gap: 12px; justify-content: center;
 }
 .flag-chip {
-  flex: 1; max-width: 130px; padding: 13px 8px;
-  border: none; border-radius: 16px;
-  background: var(--sep);
-  font-size: 16px; font-weight: 600; font-family: var(--font);
+  flex: 1; max-width: 150px; padding: 16px 10px 14px;
+  border: 2px solid var(--sep);
+  border-radius: 18px;
+  background: var(--card);
+  font-size: 17px; font-weight: 700; font-family: var(--font);
   cursor: pointer; transition: all 0.2s;
   color: var(--sub);
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
   -webkit-tap-highlight-color: transparent;
 }
-.flag-chip .chip-icon { font-size: 22px; }
-.flag-chip .chip-label { font-size: 13px; }
+.flag-chip .chip-icon { font-size: 30px; line-height: 1; }
+.flag-chip .chip-label { font-size: 15px; font-weight: 700; }
+.flag-chip .chip-bonus { font-size: 11px; font-weight: 500; opacity: 0.5; }
 .flag-chip:active { transform: scale(0.95); }
 
-.flag-chip.on.work { background: var(--g-bg); color: var(--green); }
-.flag-chip.on.ot { background: var(--r-bg); color: var(--red); }
-.flag-chip.on.hol { background: var(--o-bg); color: var(--orange); }
+.flag-chip.on.work { background: var(--g-bg); border-color: var(--green); color: var(--green); }
+.flag-chip.on.work .chip-bonus { opacity: 0.8; }
+.flag-chip.on.ot { background: var(--r-bg); border-color: var(--red); color: var(--red); }
+.flag-chip.on.ot .chip-bonus { opacity: 0.8; }
+.flag-chip.on.hol { background: var(--o-bg); border-color: var(--orange); color: var(--orange); }
+.flag-chip.on.hol .chip-bonus { opacity: 0.8; }
 
 /* Note input */
 .today-note-row {
@@ -323,9 +328,9 @@ body {
     <div class="today-wage-number" id="today-pay">¥0</div>
     <div class="today-wage-label">今日预计工资</div>
     <div class="flag-chips" id="today-toggles">
-      <button class="flag-chip work" id="tg-work" onclick="toggleFlag('work')"><span class="chip-icon">◉</span><span class="chip-label">上班</span></button>
-      <button class="flag-chip ot" id="tg-ot" onclick="toggleFlag('ot')"><span class="chip-icon">◉</span><span class="chip-label">加班</span></button>
-      <button class="flag-chip hol" id="tg-hol" onclick="toggleFlag('hol')"><span class="chip-icon">◉</span><span class="chip-label">补班</span></button>
+      <button class="flag-chip work" id="tg-work" onclick="toggleFlag('work')"><span class="chip-icon">💼</span><span class="chip-label">上班</span><span class="chip-bonus">基础工资</span></button>
+      <button class="flag-chip ot" id="tg-ot" onclick="toggleFlag('ot')"><span class="chip-icon">🌙</span><span class="chip-label">加班</span><span class="chip-bonus">+¥130</span></button>
+      <button class="flag-chip hol" id="tg-hol" onclick="toggleFlag('hol')"><span class="chip-icon">🎌</span><span class="chip-label">补班</span><span class="chip-bonus">+¥150</span></button>
     </div>
     <div class="today-note-row">
       <input type="text" id="today-note" placeholder="今天怎么样？" autocomplete="off">
